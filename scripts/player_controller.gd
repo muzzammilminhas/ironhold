@@ -35,6 +35,7 @@ var _vertical_velocity := 0.0
 
 func _ready() -> void:
 	add_to_group("player")
+	AnimUtils.mark_looping(_anim_player, ["Idle", "Run", "Walk"])
 	if _anim_player and _anim_player.has_animation("Idle"):
 		_anim_player.play("Idle")
 
