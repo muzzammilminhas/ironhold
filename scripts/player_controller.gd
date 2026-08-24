@@ -41,14 +41,24 @@ var _is_attacking := false
 var _attack_target: Node3D = null
 var _hit_reaction_timer := 0.0
 var _vertical_velocity := 0.0
+var _is_dead := false
 
 func _ready() -> void:
 	add_to_group("player")
 	AnimUtils.mark_looping(_anim_player, ["Idle", "Run", "Walk"])
 	if _anim_player and _anim_player.has_animation("Idle"):
 		_anim_player.play("Idle")
+	GameState.player_died.connect(_on_player_died)
+
+func _on_player_died() -> void:
+	_is_dead = true
+	velocity = Vector3.ZERO
+	if _anim_player and _anim_player.has_animation("Death"):
+		_anim_player.play("Death")
 
 func _physics_process(delta: float) -> void:
+	if _is_dead:
+		return
 	_attack_cooldown_timer = maxf(0.0, _attack_cooldown_timer - delta)
 	_dodge_cooldown_timer = maxf(0.0, _dodge_cooldown_timer - delta)
 	_hit_reaction_timer = maxf(0.0, _hit_reaction_timer - delta)
@@ -172,7 +182,7 @@ func _end_attack() -> void:
 	_is_attacking = false
 
 func take_damage(amount: float, _source: Node) -> void:
-	if _dodge_timer > 0.0:
+	if _is_dead or _dodge_timer > 0.0:
 		return # brief invulnerability while rolling
 	GameState.take_damage(amount)
 	if not _is_attacking:
