@@ -1,0 +1,10 @@
+Built a 3D arena survivor game from scratch in Godot 4 — figured I'd share it here since it turned out to be a genuinely fun technical project.
+
+The core loop is Vampire Survivors-style (waves of enemies, XP, pick-an-upgrade-on-level-up) but rendered in full 3D with a third-person knight instead of a top-down sprite. Two things I'm most proud of under the hood:
+
+- Every run generates a fresh arena at runtime — obstacles are placed procedurally with rejection sampling (keeps the middle open, keeps pieces from overlapping each other), and the NavigationRegion3D navmesh is baked fresh after layout, so no two runs play out the same way.
+- Enemies actually pathfind. No "walk in a straight line toward the player" — each one uses a real NavigationAgent3D against the baked navmesh to route around pillars and rubble, blended with a lightweight separation force so packs flock and spread out instead of clipping through each other or stacking on the same tile.
+
+Also went through a real profiling pass getting a pack of enemies to hold 60fps (SSAO and an oversized shadow map were eating way more frame time than expected — cutting those bought back way more headroom than I expected), then shipped it to both Android and Web from the same codebase.
+
+#gamedev #godot #indiegame #3d #proceduralgeneration

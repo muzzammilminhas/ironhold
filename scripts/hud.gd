@@ -11,6 +11,14 @@ func _ready() -> void:
 	GameState.health_changed.connect(_on_health_changed)
 	GameState.xp_changed.connect(_on_xp_changed)
 	GameState.level_up.connect(_on_level_up)
+	GameState.run_started.connect(_on_run_started)
+	_on_run_started()
+
+## Also covers this node's own initial sync, and any future restart:
+## GameState.start_run() emits run_started once its reset is complete, which
+## corrects any stale read from before that reset (a fresh HUD's _ready()
+## always runs before Main's, since children ready before their parent).
+func _on_run_started() -> void:
 	_on_health_changed(GameState.health, GameState.max_health)
 	_on_xp_changed(GameState.xp, GameState.xp_to_next_level)
 	_on_level_up(GameState.level)
