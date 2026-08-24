@@ -1,0 +1,20 @@
+# Godot 4 editor cache / import artifacts
+.godot/
+export_presets.cfg.bak
+
+# Raw asset-pack downloads (source material, not part of the shipped project —
+# the files we actually use are copied into assets/characters/)
+/Godot_v4.7.2-stable_win64.exe/
+/Monster Pack Animated by Quaternius/
+/Monster Pack Animated by Quaternius.zip
+/drive-download-20260824T171920Z-1-001/
+/drive-download-20260824T171920Z-1-001.zip
+
+# Android build intermediates (not the final signed APK, which lives in builds/)
+android/build/
+android/.gradle/
+*.apk.idsig
+
+# OS cruft
+Thumbs.db
+.DS_Store
