@@ -15,6 +15,12 @@ android/build/
 android/.gradle/
 *.apk.idsig
 
+# Debug/test export artifacts. builds/ironhold.apk (the final signed release
+# build) and linkedin-post/ are the only build outputs meant to be committed,
+# per Phase 8.
+builds/*_debug.apk
+builds/web/
+
 # OS cruft
 Thumbs.db
 .DS_Store

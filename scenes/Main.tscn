@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/upgrade_system.gd" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/DeathScreen.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/MobileControls.tscn" id="10"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("5")
@@ -32,6 +33,8 @@ script = ExtResource("7")
 [node name="HUD" parent="." instance=ExtResource("8")]
 
 [node name="DeathScreen" parent="." instance=ExtResource("9")]
+
+[node name="MobileControls" parent="." instance=ExtResource("10")]
 
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 6.5)
