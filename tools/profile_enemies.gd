@@ -11,6 +11,11 @@ func _initialize() -> void:
 
 func _run() -> Callable:
 	return func():
+		# Vsync caps measured frame time at the monitor's refresh interval,
+		# hiding true headroom (or shortfall) below/above that cap. Disable
+		# it for this measurement only — the shipped game keeps vsync on.
+		if DisplayServer.get_name() != "headless":
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		var main: Node3D = load("res://scenes/Main.tscn").instantiate()
 		get_root().add_child(main)
 

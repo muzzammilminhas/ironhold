@@ -31,6 +31,10 @@ func generate(seed_value: int) -> void:
 func _on_bake_finished() -> void:
 	generation_complete.emit()
 
+## Used by wave_spawner.gd to avoid dropping enemies on top of obstacles.
+func get_obstacle_positions() -> Array[Vector3]:
+	return _placed_positions.duplicate()
+
 func _clear_obstacles() -> void:
 	for child in _obstacle_container.get_children():
 		child.queue_free()

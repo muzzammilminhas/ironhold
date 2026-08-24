@@ -8,6 +8,8 @@ func _initialize() -> void:
 
 func _run() -> Callable:
 	return func():
+		if DisplayServer.get_name() != "headless":
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		var main: Node3D = load("res://scenes/Main.tscn").instantiate()
 		get_root().add_child(main)
 		var enemies_root: Node3D = main.get_node("Enemies")

@@ -9,15 +9,23 @@ extends CharacterBody3D
 ## auto-targeted action combat where the weapon's exact swing volume doesn't
 ## need to matter.
 
-const MOVE_SPEED := 5.5
 const ROTATION_SPEED := 10.0
 const DODGE_SPEED := 9.5
 const DODGE_DURATION := 0.32
 const DODGE_COOLDOWN := 0.9
-const ATTACK_RANGE := 2.2
-const ATTACK_DAMAGE := 18.0
 const ATTACK_COOLDOWN := 0.5
 const GRAVITY := 18.0
+const HIT_REACTION_DURATION := 0.35
+const CLEAVE_RADIUS := 2.6
+
+# Base stats. Mutable (not const) because upgrade_system.gd scales these
+# directly on level-up; ATTACK_DAMAGE/MOVE_SPEED/ATTACK_RANGE growth and the
+# has_cleave flag are exactly the "new attack" / stat-boost upgrades the
+# design doc calls for.
+var move_speed := 5.5
+var attack_range := 2.2
+var attack_damage := 18.0
+var has_cleave := false
 
 @export var camera_rig_path: NodePath = ^"../CameraRig"
 
@@ -31,6 +39,7 @@ var _dodge_direction := Vector3.ZERO
 var _attack_cooldown_timer := 0.0
 var _is_attacking := false
 var _attack_target: Node3D = null
+var _hit_reaction_timer := 0.0
 var _vertical_velocity := 0.0
 
 func _ready() -> void:
@@ -42,6 +51,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_attack_cooldown_timer = maxf(0.0, _attack_cooldown_timer - delta)
 	_dodge_cooldown_timer = maxf(0.0, _dodge_cooldown_timer - delta)
+	_hit_reaction_timer = maxf(0.0, _hit_reaction_timer - delta)
 
 	if is_on_floor():
 		_vertical_velocity = -0.5
@@ -76,8 +86,8 @@ func _handle_movement(delta: float) -> void:
 		velocity.z = 0.0
 		return
 	var move_dir := _camera_relative_direction(input_dir)
-	velocity.x = move_dir.x * MOVE_SPEED
-	velocity.z = move_dir.z * MOVE_SPEED
+	velocity.x = move_dir.x * move_speed
+	velocity.z = move_dir.z * move_speed
 	_face_direction(move_dir, delta)
 
 func _camera_relative_direction(input_dir: Vector2) -> Vector3:
@@ -122,7 +132,7 @@ func _start_attack() -> void:
 	_is_attacking = true
 	# Player doesn't move while attacking, so the target must already be
 	# within strike range for the swing (below) to actually connect.
-	_attack_target = _find_nearest_damageable(ATTACK_RANGE)
+	_attack_target = _find_nearest_damageable(attack_range)
 	if _attack_target:
 		_face_point_instant(_attack_target.global_position)
 	var length := 0.6
@@ -140,12 +150,33 @@ func _start_attack() -> void:
 func _apply_attack_damage() -> void:
 	if _attack_target and is_instance_valid(_attack_target) and _attack_target.has_method("take_damage"):
 		var dist := global_position.distance_to(_attack_target.global_position)
-		if dist <= ATTACK_RANGE + 0.4:
-			_attack_target.take_damage(ATTACK_DAMAGE, self)
+		if dist <= attack_range + 0.4:
+			_attack_target.take_damage(attack_damage, self)
+			if has_cleave:
+				_apply_cleave_damage(_attack_target)
 	_attack_target = null
+
+## "New attack" upgrade: also hits one other nearby enemy besides the main
+## target, so it reads as a distinct new capability rather than another
+## damage multiplier.
+func _apply_cleave_damage(primary_target: Node3D) -> void:
+	for node in get_tree().get_nodes_in_group("damageable"):
+		if node == self or node == primary_target or not (node is Node3D):
+			continue
+		var n3d: Node3D = node
+		if global_position.distance_to(n3d.global_position) <= CLEAVE_RADIUS and n3d.has_method("take_damage"):
+			n3d.take_damage(attack_damage * 0.6, self)
+			break
 
 func _end_attack() -> void:
 	_is_attacking = false
+
+func take_damage(amount: float, _source: Node) -> void:
+	if _dodge_timer > 0.0:
+		return # brief invulnerability while rolling
+	GameState.take_damage(amount)
+	if not _is_attacking:
+		_hit_reaction_timer = HIT_REACTION_DURATION
 
 func _find_nearest_damageable(radius: float) -> Node3D:
 	var nearest: Node3D = null
@@ -168,6 +199,8 @@ func _update_animation() -> void:
 		desired = "Roll"
 	elif _is_attacking:
 		desired = "Sword_Attack"
+	elif _hit_reaction_timer > 0.0:
+		desired = "RecieveHit"
 	elif Vector2(velocity.x, velocity.z).length() > 0.3:
 		desired = "Run"
 	if _anim_player.has_animation(desired) and _anim_player.current_animation != desired:
