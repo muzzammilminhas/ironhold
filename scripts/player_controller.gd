@@ -37,7 +37,6 @@ func _ready() -> void:
 	add_to_group("player")
 	if _anim_player and _anim_player.has_animation("Idle"):
 		_anim_player.play("Idle")
-	GameState.start_run(randi())
 
 func _physics_process(delta: float) -> void:
 	_attack_cooldown_timer = maxf(0.0, _attack_cooldown_timer - delta)
